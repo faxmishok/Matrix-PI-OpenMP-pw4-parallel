@@ -2,17 +2,19 @@
 #include <omp.h>
 #include <time.h>
 
-#define N 550
+#define N 590
 
 int main() {
 
+    double t_ref, t_end;
+    t_ref = omp_get_wtime();
+
     double C[N][N], A[N][N], B[N][N];
     size_t i, j, k;
-    long t_ref, t_end;
 
-    #pragma omp parallel private(i,j,k) shared(C,B,A)
+    #pragma omp parallel shared(C,B,A) private(i,j,k)
     {
-        #pragma omp for schedule(static)
+        #pragma omp for schedule(dynamic)
         for (i = 0; i < N; i++ ) {
             for ( j = 0; j < N; j++ ) {
                 C[i][j] = 0.;
@@ -22,11 +24,12 @@ int main() {
             }
         }
     }
+    t_end = omp_get_wtime();
+    printf("Elapsed time: %lf seconds.\n", (t_end-t_ref));
     return 0;
 }
 
-// Normal : 0.845s
-// 4 threads: static - 0.534s,  dynamic - 0.520s;
-// 3 threads: static - 0.613s,  dynamic - 0.530s;
-// 2 threads: static - 0.647s,  dynamic - 0.639s;
-// 1 thread:  static - 1.169s,  dynamic - 1.100s;
+// 4 threads: normal - 1.076s, static - 0.731s,  dynamic - 0.766s;
+// 3 threads: normal - 1.076s, static - 0.800s,  dynamic - 0.754s;
+// 2 threads: normal - 1.076s, static - 0.899s,  dynamic - 0.884s;
+// 1 thread:  normal - 1.076s, static - 1.427s,  dynamic - 1.457s;
